@@ -1,0 +1,426 @@
+/*
+ * Blue-and-white UI theme for the Tournament Bracket Creator.
+ *
+ * Implements Requirement 8 (Visual Design and UI Theme):
+ *  - 8.1 Blue + white palette applied consistently across every screen.
+ *  - 8.2 Minimal layout with a consistent spacing scale and grid-aligned grouping.
+ *  - 8.3 Buttons expose distinct default / hover / focus states.
+ *  - 8.4 Hover/focus apply a visible change via fast (<200ms) transitions.
+ *  - 8.5 When hover and focus coincide, focus styling wins (focus rules are
+ *        declared AFTER hover rules so the focus outline takes precedence).
+ *  - 8.6 Contrast: the token pairs used for text meet WCAG AA
+ *        (normal text >= 4.5:1, large text >= 3:1). See src/__tests__/components/theme.test.tsx.
+ *
+ * Contrast-verified token pairs (foreground on background):
+ *  - --color-text        #1f2937 on --color-white #ffffff   (normal text)
+ *  - --color-blue-900    #1e3a8a on --color-white #ffffff   (normal text / headings)
+ *  - --color-text-on-primary #ffffff on --color-blue-700 #1d4ed8 (button text, normal)
+ *  - --color-error       #b91c1c on --color-white #ffffff   (normal text)
+ *  - --color-blue-600    #2563eb on --color-white #ffffff   (LARGE text / accents only)
+ */
+
+:root {
+  /* Blue + white palette (8.1) */
+  --color-white: #ffffff;
+  --color-blue-50: #eff6ff;
+  --color-blue-100: #dbeafe;
+  --color-blue-600: #2563eb; /* accent / large text only */
+  --color-blue-700: #1d4ed8; /* primary interactive background */
+  --color-blue-900: #1e3a8a; /* headings / strong text */
+
+  --color-text: #1f2937;            /* body text on white */
+  --color-text-on-primary: #ffffff; /* text on primary blue */
+  --color-border: #cbd5e1;          /* neutral slate-300 border */
+  --color-error: #b91c1c;           /* accessible red for error text */
+
+  /* Spacing scale (8.2): 4 / 8 / 16 / 24 / 32 / 48 px */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --space-6: 48px;
+
+  /* Focus ring token (8.3, 8.5) */
+  --focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.55);
+
+  /* Shared radii + fast transition (8.4) */
+  --radius: 8px;
+  --transition-fast: 120ms ease-in-out;
+}
+
+/* ----------------------------------------------------------------------- */
+/* Base surfaces + typography (8.1, 8.6)                                    */
+/* ----------------------------------------------------------------------- */
+
+body {
+  margin: 0;
+  background-color: var(--color-blue-50);
+  color: var(--color-text);
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--color-blue-900);
+  line-height: 1.25;
+}
+
+label {
+  display: inline-block;
+  margin-bottom: var(--space-1);
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+input,
+select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--space-2);
+  margin-bottom: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background-color: var(--color-white);
+  color: var(--color-text);
+  font-size: 15px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+input:hover,
+select:hover {
+  border-color: var(--color-blue-600);
+}
+
+/* Focus declared AFTER hover so focus wins on coincidence (8.5) */
+input:focus-visible,
+select:focus-visible {
+  outline: none;
+  border-color: var(--color-blue-700);
+  box-shadow: var(--focus-ring);
+}
+
+/* ----------------------------------------------------------------------- */
+/* Layout containers (8.2)                                                  */
+/* ----------------------------------------------------------------------- */
+
+.app {
+  min-height: 100vh;
+  background-color: var(--color-blue-50);
+}
+
+.app-header {
+  text-align: center;
+  padding: var(--space-3);
+  background-color: var(--color-white);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.app-title {
+  margin: 0;
+  font-size: 24px;
+}
+
+.app-main {
+  margin: 0 auto;
+  padding: var(--space-4);
+}
+
+.screen-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+/* Grid-aligned two-column grouping of related sections (8.2) */
+.panel-grid {
+  display: flex;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.panel-grid > * {
+  flex: 1 1 300px;
+}
+
+/* Visual grouping card for related interactive sections (8.2) */
+.card {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+}
+
+.center-actions {
+  margin-top: var(--space-4);
+  text-align: center;
+}
+
+/* ----------------------------------------------------------------------- */
+/* Shared button styles (8.3, 8.4, 8.5)                                     */
+/* ----------------------------------------------------------------------- */
+
+.btn {
+  display: inline-block;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-blue-700);
+  border-radius: var(--radius);
+  background-color: var(--color-blue-700);
+  color: var(--color-text-on-primary);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  /* Fast, visible state change under 200ms (8.4) */
+  transition: background-color var(--transition-fast), border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+/* Hover: distinct from default via darker background + border (8.3, 8.4) */
+.btn:hover {
+  background-color: var(--color-blue-900);
+  border-color: var(--color-blue-900);
+}
+
+/* Focus declared AFTER hover so focus styling wins on coincidence (8.5).
+   Focus adds a visible outline ring that hover does not have (8.3). */
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.btn:disabled {
+  background-color: var(--color-border);
+  border-color: var(--color-border);
+  color: var(--color-white);
+  cursor: not-allowed;
+}
+
+/* Secondary button variant for low-emphasis actions (e.g. Remove) */
+.btn-secondary {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-blue-700);
+  color: var(--color-blue-900);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-blue-100);
+}
+
+.btn-secondary:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* ----------------------------------------------------------------------- */
+/* Error text (8.6 contrast)                                                */
+/* ----------------------------------------------------------------------- */
+
+.error {
+  color: var(--color-error);
+  margin-bottom: var(--space-3);
+}
+
+/* ----------------------------------------------------------------------- */
+/* Participant + suggestion lists (grouping + spacing, 8.2)                 */
+/* ----------------------------------------------------------------------- */
+
+.participant-list,
+.suggestion-list {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+}
+
+.participant-list > li,
+.suggestion-list > li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+  /* Ensure long participant names wrap and stay fully readable (Req 9) */
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* ----------------------------------------------------------------------- */
+/* Screen-reader-only utility                                               */
+/* ----------------------------------------------------------------------- */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ----------------------------------------------------------------------- */
+/* Current-round view: matchup cards, versus separator, Vote_Slider, and    */
+/* single-matchup navigation (Req 5.10, 12.1, 12.2, 12.5, 12.10, 14.x —      */
+/* mobile-friendly blue/white layout)                                        */
+/* ----------------------------------------------------------------------- */
+
+.current-round-view {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.matchup-list {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.matchup-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Classic pick row + vote option row: two distinct slots split by the separator */
+.matchup-picks,
+.matchup-options {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* Each competing option is its own visually distinct slot/pill (Req 5.10) */
+.matchup-option {
+  flex: 1 1 200px;
+  min-width: 0;
+  text-align: center;
+  /* Long participant names stay fully readable (Req 9) */
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.matchup-option-empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2) var(--space-3);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  background-color: var(--color-blue-50);
+}
+
+/* Dedicated "versus" separator with visible spacing on both sides (Req 5.10) */
+.matchup-vs {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  margin: 0 var(--space-2);
+  padding: 0 var(--space-1);
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-blue-600);
+  flex: 0 0 auto;
+}
+
+/* Vote option slot: name + live derived count (no thumb controls) */
+.vote-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background-color: var(--color-white);
+}
+
+.vote-option-name {
+  font-weight: 600;
+  color: var(--color-blue-900);
+}
+
+.vote-option-count {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-blue-700);
+}
+
+.matchup-vote {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* ----------------------------------------------------------------------- */
+/* Vote_Slider: single horizontal range input rendered below the options.  */
+/* Release-to-confirm (no confirm button); its released value sets the      */
+/* vote split (Req 12.1, 12.2, 12.5). Focus declared AFTER hover (8.5).     */
+/* ----------------------------------------------------------------------- */
+
+.vote-slider {
+  /* Override the global input rule: this is a slider, not a text box */
+  width: 100%;
+  box-sizing: border-box;
+  margin: var(--space-2) 0 0;
+  padding: var(--space-2) 0;
+  border: none;
+  background: transparent;
+  /* Native track/thumb tint in the blue palette — simple + accessible */
+  accent-color: var(--color-blue-700);
+  /* Comfortable touch target on mobile */
+  height: 24px;
+  cursor: pointer;
+  transition: box-shadow var(--transition-fast);
+}
+
+/* Focus declared AFTER hover so focus styling wins on coincidence (8.5);
+   visible focus ring via the shared token (8.3, 8.4). */
+.vote-slider:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius);
+}
+
+.vote-slider:disabled {
+  accent-color: var(--color-border);
+  cursor: not-allowed;
+}
+
+/* ----------------------------------------------------------------------- */
+/* Single-matchup navigation: "Matchup X of N" counter + Prev/Next buttons  */
+/* (Req 12.11, 14.1, 14.2 — one matchup per screen)                         */
+/* ----------------------------------------------------------------------- */
+
+.matchup-counter {
+  margin: var(--space-3) 0 0;
+  text-align: center;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.matchup-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+/* Layout only — hover/focus states are inherited from .btn / .btn-secondary */
+.matchup-nav-btn {
+  flex: 0 0 auto;
+  min-width: 96px;
+}
