@@ -44,6 +44,14 @@ import {
  *   (Req 12.5). An equal split (only possible when Player_Count is even) records
  *   no winner and instead shows the Tie_Break_Draw control (Req 12.6, 12.10).
  *
+ *   Last-pair exception (vote mode with a Player_Count): recording the LAST
+ *   matchup of a round completes the round and the reducer advances to the next
+ *   round immediately. To keep the round advance explicit for the last pair, its
+ *   slider release does NOT dispatch straight away; instead the split is held as a
+ *   pending commit and the round only advances when the user presses "Next". This
+ *   preserves a "Next" button for the final pair of every round, matching the
+ *   Prev/Next navigation used for the earlier pairs.
+ *
  * The two options are always rendered as two visually distinct elements separated
  * by a dedicated `.matchup-vs` separator with visible spacing on both sides, so
  * option names are never rendered adjacent (Req 5.10).
@@ -82,12 +90,30 @@ interface MatchupCardProps {
   playerCount: number | null;
   canDecide: boolean;
   isThirdPlace: boolean;
+  isLastMatchup: boolean;
   onSelectWinner: (matchupId: string, winnerId: string) => void;
   onEnterVotes: (matchupId: string, votes1: number, votes2: number) => void;
   onResolveTie: (matchupId: string) => void;
   onSelectThirdPlaceWinner: (winnerId: string) => void;
   onEnterThirdPlaceVotes: (votes1: number, votes2: number) => void;
   onResolveThirdPlaceTie: () => void;
+  // For the LAST matchup of a round, the slider release does not commit directly;
+  // it reports the split here so the round only advances when "Next" is pressed.
+  // `null` clears any previously reported split (e.g. the release settled on a tie).
+  onPendingVoteCommit: (split: PendingSplit | null) => void;
+}
+
+/**
+ * A recorded-but-not-yet-committed vote split for the last matchup of a round.
+ * Stored as plain data (not a callback) so committing it from the "Next" button is
+ * free of stale-closure / functional-state-setter pitfalls. `isThirdPlace` selects
+ * which dispatch the parent routes it through.
+ */
+interface PendingSplit {
+  matchupId: string;
+  v1: number;
+  v2: number;
+  isThirdPlace: boolean;
 }
 
 function ClassicMatchupControls({
@@ -148,19 +174,23 @@ function VoteMatchupControls({
   playerCount,
   canDecide,
   isThirdPlace,
+  isLastMatchup,
   onEnterVotes,
   onResolveTie,
   onEnterThirdPlaceVotes,
   onResolveThirdPlaceTie,
+  onPendingVoteCommit,
 }: {
   matchup: Matchup;
   playerCount: number;
   canDecide: boolean;
   isThirdPlace: boolean;
+  isLastMatchup: boolean;
   onEnterVotes: (matchupId: string, votes1: number, votes2: number) => void;
   onResolveTie: (matchupId: string) => void;
   onEnterThirdPlaceVotes: (votes1: number, votes2: number) => void;
   onResolveThirdPlaceTie: () => void;
+  onPendingVoteCommit: (split: PendingSplit | null) => void;
 }) {
   // The slider is oriented so moving the thumb toward an option gives that option
   // MORE votes. option2 is drawn on the right, so the RAW slider value is option2's
@@ -191,17 +221,52 @@ function VoteMatchupControls({
   // the last pair of a round records reliably even if a re-render hasn't flushed the
   // latest state yet. An equal split (only possible when playerCount is even) records
   // no winner — the Tie_Break_Draw control below handles that case (Req 12.6, 12.10).
-  const commit = (raw: number) => {
-    if (!canDecide) return;
-    const v2 = raw;
-    const v1 = playerCount - raw;
-    if (v1 === v2) return;
+  //
+  // For the LAST matchup of a round, recording the split completes the round and the
+  // reducer advances immediately, which would skip the "Next" click every earlier
+  // pair requires. So the last pair does not dispatch on release; it reports the
+  // split as a pending commit and lets the "Next" button trigger the actual record
+  // (and thus the round advance). A tie on the last pair clears any pending commit —
+  // it is resolved through the Tie_Break_Draw control instead.
+  const dispatchSplit = (v1: number, v2: number) => {
     if (isThirdPlace) {
       onEnterThirdPlaceVotes(v1, v2);
     } else {
       onEnterVotes(matchup.id, v1, v2);
     }
   };
+
+  const commit = (raw: number) => {
+    if (!canDecide) return;
+    const v2 = raw;
+    const v1 = playerCount - raw;
+    if (v1 === v2) return;
+    // The last pair never dispatches on release — its split is kept in sync as a
+    // pending value by the effect below and committed by the "Next" button.
+    if (isLastMatchup) return;
+    dispatchSplit(v1, v2);
+  };
+
+  // Keep the parent's pending split in lock-step with the live slider position for
+  // the LAST matchup, so "Next" always reflects exactly what is on screen and never
+  // depends on which release gesture (pointerup/touchend/blur) the browser happened
+  // to fire. For any non-last matchup (or a tie / undecidable matchup) the pending
+  // value is cleared. This effect is the single owner of the pending split, so there
+  // is no ordering race with a separate clear-on-change effect in the parent.
+  useEffect(() => {
+    if (!isLastMatchup || !canDecide) {
+      onPendingVoteCommit(null);
+      return;
+    }
+    const v2 = sliderValue;
+    const v1 = playerCount - sliderValue;
+    if (v1 === v2) {
+      onPendingVoteCommit(null);
+    } else {
+      onPendingVoteCommit({ matchupId: matchup.id, v1, v2, isThirdPlace });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLastMatchup, canDecide, sliderValue, playerCount, matchup.id, isThirdPlace]);
 
   const breakTie = () => {
     if (isThirdPlace) {
@@ -266,12 +331,14 @@ function MatchupCard({
   playerCount,
   canDecide,
   isThirdPlace,
+  isLastMatchup,
   onSelectWinner,
   onEnterVotes,
   onResolveTie,
   onSelectThirdPlaceWinner,
   onEnterThirdPlaceVotes,
   onResolveThirdPlaceTie,
+  onPendingVoteCommit,
 }: MatchupCardProps) {
   return (
     <li
@@ -292,10 +359,12 @@ function MatchupCard({
           playerCount={playerCount}
           canDecide={canDecide}
           isThirdPlace={isThirdPlace}
+          isLastMatchup={isLastMatchup}
           onEnterVotes={onEnterVotes}
           onResolveTie={onResolveTie}
           onEnterThirdPlaceVotes={onEnterThirdPlaceVotes}
           onResolveThirdPlaceTie={onResolveThirdPlaceTie}
+          onPendingVoteCommit={onPendingVoteCommit}
         />
       )}
     </li>
@@ -316,6 +385,11 @@ export function CurrentRoundView({
   // Which Matchup_Screen is shown is transient local UI state (design Decision #14).
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  // For the LAST matchup of a round in vote mode, the slider release reports its
+  // split here (plain data) instead of committing directly, so the round only
+  // advances when the user presses "Next". Transient UI state, never persisted.
+  const [pendingSplit, setPendingSplit] = useState<PendingSplit | null>(null);
+
   // Clamp currentIndex into range as the matchups array changes (matchups get
   // decided, the array shrinks, or the round advances). The render-time safeIndex
   // guards against indexing out of bounds before this effect runs.
@@ -327,6 +401,10 @@ export function CurrentRoundView({
     const last = matchupCount - 1;
     if (currentIndex > last) setCurrentIndex(last);
   }, [matchupCount, currentIndex]);
+
+  // The pending split is owned entirely by the visible vote matchup's controls,
+  // which report it via onPendingVoteCommit (keeping it in sync with the slider and
+  // clearing it for non-last / classic / tied matchups). No separate reset needed.
 
   // Once the champion is decided the full tree is shown elsewhere; render nothing here.
   if (isTournamentComplete(bracket)) return null;
@@ -359,6 +437,30 @@ export function CurrentRoundView({
     ? canSelectThirdPlaceWinner(bracket)
     : canSelectWinner(bracket, visibleMatchup.id);
 
+  // The last pair of the round uses "Next" to record its vote and advance rather
+  // than advancing automatically on slider release. When a pending split exists,
+  // "Next" dispatches it (which advances the round); otherwise the Next control
+  // behaves as before.
+  const isLastMatchup = safeIndex === matchupCount - 1;
+  const hasPendingSplit = pendingSplit !== null;
+  const nextDisabled = isLastMatchup ? !hasPendingSplit : false;
+
+  const handleNext = () => {
+    if (isLastMatchup) {
+      if (pendingSplit) {
+        const { matchupId, v1, v2, isThirdPlace: split3rd } = pendingSplit;
+        setPendingSplit(null);
+        if (split3rd) {
+          onEnterThirdPlaceVotes(v1, v2);
+        } else {
+          onEnterVotes(matchupId, v1, v2);
+        }
+      }
+      return;
+    }
+    setCurrentIndex((i) => Math.min(matchupCount - 1, i + 1));
+  };
+
   return (
     <section aria-labelledby="current-round-heading" className="current-round-view">
       <h2 id="current-round-heading">{heading}</h2>
@@ -375,12 +477,14 @@ export function CurrentRoundView({
           playerCount={playerCount}
           canDecide={canDecide}
           isThirdPlace={isThirdPlace}
+          isLastMatchup={isLastMatchup}
           onSelectWinner={onSelectWinner}
           onEnterVotes={onEnterVotes}
           onResolveTie={onResolveTie}
           onSelectThirdPlaceWinner={onSelectThirdPlaceWinner}
           onEnterThirdPlaceVotes={onEnterThirdPlaceVotes}
           onResolveThirdPlaceTie={onResolveThirdPlaceTie}
+          onPendingVoteCommit={setPendingSplit}
         />
       </ul>
 
@@ -397,8 +501,8 @@ export function CurrentRoundView({
         <button
           type="button"
           className="btn btn-secondary matchup-nav-btn"
-          onClick={() => setCurrentIndex((i) => Math.min(matchupCount - 1, i + 1))}
-          disabled={safeIndex === matchupCount - 1}
+          onClick={handleNext}
+          disabled={nextDisabled}
           aria-label="Next matchup"
         >
           Next

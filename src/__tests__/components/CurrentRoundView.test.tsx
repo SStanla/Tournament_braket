@@ -183,7 +183,7 @@ describe('CurrentRoundView', () => {
     expect(slider).toHaveAttribute('max', String(playerCount));
 
     // The slider is oriented intuitively: its raw value is the RIGHT option's votes.
-    // Sliding to 6 gives Bob (right) 6 and Alice (left) 4; releasing records it.
+    // Sliding to 6 gives Bob (right) 6 and Alice (left) 4.
     fireEvent.change(slider, { target: { value: '6' } });
 
     const counts = document.querySelectorAll('.vote-option-count');
@@ -191,11 +191,16 @@ describe('CurrentRoundView', () => {
     expect(counts[0].textContent).toBe('4'); // Alice (left) = playerCount - 6
     expect(counts[1].textContent).toBe('6'); // Bob (right) = raw slider value
 
+    // This is the last (and only) matchup of the round, so releasing the slider does
+    // NOT record straight away — the recorded split is committed via the Next button.
     fireEvent.pointerUp(slider);
+    expect(onEnterVotes).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: /next matchup/i }));
     expect(onEnterVotes).toHaveBeenCalledWith('m1', 4, 6);
   });
 
-  it('VOTE: release-to-confirm — a slider change auto-records ENTER_VOTES with the split (no button)', () => {
+  it('VOTE: last pair — release reports the split and Next records ENTER_VOTES (no confirm button)', () => {
     const onEnterVotes = vi.fn();
     const playerCount = 10;
     const bracket = makeBracketSize2(null, null);
@@ -204,12 +209,54 @@ describe('CurrentRoundView', () => {
     // There is no separate "Record result" button anymore.
     expect(screen.queryByRole('button', { name: /record result/i })).not.toBeInTheDocument();
 
-    // Committing the slider (release) to an unequal split auto-dispatches the split.
-    // Raw value 6 → Bob (right) 6, Alice (left) 4.
+    // On the last pair of a round the Next button stays available. Before releasing
+    // the slider on an unequal split there is nothing pending, so Next is disabled.
+    const nextBtn = screen.getByRole('button', { name: /next matchup/i });
+    expect(nextBtn).toBeDisabled();
+
+    // Committing the slider (release) to an unequal split records it as PENDING and
+    // enables Next; the dispatch happens only when Next is clicked (which advances
+    // the round). Raw value 6 → Bob (right) 6, Alice (left) 4.
     const slider = screen.getByLabelText(/vote split for alice versus bob/i);
     fireEvent.change(slider, { target: { value: '6' } });
     fireEvent.pointerUp(slider);
+    expect(onEnterVotes).not.toHaveBeenCalled();
+    expect(nextBtn).toBeEnabled();
+
+    fireEvent.click(nextBtn);
     expect(onEnterVotes).toHaveBeenCalledWith('m1', 4, 6);
+  });
+
+  it('VOTE: multi-pair round — deciding pair 1 directly, then pair 2 via Next records the LAST matchup (advances the round)', () => {
+    const onEnterVotes = vi.fn();
+    const playerCount = 10;
+    // Size-4 Semifinal: two matchups, shown one at a time.
+    const bracket = makeFreshBracketSize4();
+    const semifinal = bracket.rounds.find((r) => r.label === 'Semifinal')!;
+    const [m0, m1] = semifinal.matchups;
+
+    renderView(bracket, 'vote', playerCount, { onEnterVotes });
+
+    // Matchup 1 of 2 (NOT the last): releasing the slider records it directly.
+    expect(screen.getByText(/Matchup 1 of 2/i)).toBeInTheDocument();
+    let slider = screen.getByRole('slider') as HTMLInputElement;
+    fireEvent.change(slider, { target: { value: '7' } });
+    fireEvent.pointerUp(slider);
+    expect(onEnterVotes).toHaveBeenCalledWith(m0.id, 3, 7);
+
+    // Navigate to Matchup 2 of 2 (the LAST pair).
+    fireEvent.click(screen.getByRole('button', { name: /next matchup/i }));
+    expect(screen.getByText(/Matchup 2 of 2/i)).toBeInTheDocument();
+
+    // Move the last pair's slider to a decisive split → Next enables.
+    slider = screen.getByRole('slider') as HTMLInputElement;
+    fireEvent.change(slider, { target: { value: '7' } });
+    const nextBtn = screen.getByRole('button', { name: /next matchup/i });
+    expect(nextBtn).toBeEnabled();
+
+    // Clicking Next records the LAST matchup (which is what advances the round).
+    fireEvent.click(nextBtn);
+    expect(onEnterVotes).toHaveBeenCalledWith(m1.id, 3, 7);
   });
 
   it('VOTE: an equal split (tie) does NOT auto-record a result', () => {
