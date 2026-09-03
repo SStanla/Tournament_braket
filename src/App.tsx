@@ -130,7 +130,21 @@ function AppContent() {
       </div>
 
       {isFull && (
-        <div className="center-actions" style={{ marginTop: '24px', textAlign: 'center' }}>
+        <div
+          className="center-actions generate-bracket-bar"
+          style={{
+            position: 'sticky',
+            bottom: 0,
+            zIndex: 10,
+            marginTop: '24px',
+            padding: '16px',
+            textAlign: 'center',
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(4px)',
+            borderTop: '1px solid #e5e7eb',
+            boxShadow: '0 -2px 8px rgba(0, 0, 0, 0.06)',
+          }}
+        >
           <button
             type="button"
             className="btn"

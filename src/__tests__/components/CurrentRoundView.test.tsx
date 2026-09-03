@@ -182,16 +182,17 @@ describe('CurrentRoundView', () => {
     expect(slider).toHaveAttribute('min', '0');
     expect(slider).toHaveAttribute('max', String(playerCount));
 
-    // Dragging (change) to 6 shows a 6 / 4 split live; releasing records it.
+    // The slider is oriented intuitively: its raw value is the RIGHT option's votes.
+    // Sliding to 6 gives Bob (right) 6 and Alice (left) 4; releasing records it.
     fireEvent.change(slider, { target: { value: '6' } });
 
     const counts = document.querySelectorAll('.vote-option-count');
     expect(counts).toHaveLength(2);
-    expect(counts[0].textContent).toBe('6');
-    expect(counts[1].textContent).toBe('4');
+    expect(counts[0].textContent).toBe('4'); // Alice (left) = playerCount - 6
+    expect(counts[1].textContent).toBe('6'); // Bob (right) = raw slider value
 
     fireEvent.pointerUp(slider);
-    expect(onEnterVotes).toHaveBeenCalledWith('m1', 6, 4);
+    expect(onEnterVotes).toHaveBeenCalledWith('m1', 4, 6);
   });
 
   it('VOTE: release-to-confirm — a slider change auto-records ENTER_VOTES with the split (no button)', () => {
@@ -204,10 +205,11 @@ describe('CurrentRoundView', () => {
     expect(screen.queryByRole('button', { name: /record result/i })).not.toBeInTheDocument();
 
     // Committing the slider (release) to an unequal split auto-dispatches the split.
+    // Raw value 6 → Bob (right) 6, Alice (left) 4.
     const slider = screen.getByLabelText(/vote split for alice versus bob/i);
     fireEvent.change(slider, { target: { value: '6' } });
     fireEvent.pointerUp(slider);
-    expect(onEnterVotes).toHaveBeenCalledWith('m1', 6, 4);
+    expect(onEnterVotes).toHaveBeenCalledWith('m1', 4, 6);
   });
 
   it('VOTE: an equal split (tie) does NOT auto-record a result', () => {

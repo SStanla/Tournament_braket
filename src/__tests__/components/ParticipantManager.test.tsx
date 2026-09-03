@@ -46,33 +46,33 @@ describe('ParticipantManager', () => {
   it('renders the participant input and add button', () => {
     renderWithTournament();
 
-    expect(screen.getByLabelText('Participant name')).toBeInTheDocument();
+    expect(screen.getByLabelText('Item name')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Add' })).toBeInTheDocument();
   });
 
   it('shows participant count vs bracket size', () => {
     renderWithTournament(8);
 
-    expect(screen.getByText('0/8 participants')).toBeInTheDocument();
+    expect(screen.getByText('0/8 items')).toBeInTheDocument();
   });
 
   it('adds a participant on form submit', () => {
     renderWithTournament(4);
 
-    const input = screen.getByLabelText('Participant name');
+    const input = screen.getByLabelText('Item name');
     const addButton = screen.getByRole('button', { name: 'Add' });
 
     fireEvent.change(input, { target: { value: 'Alice' } });
     fireEvent.click(addButton);
 
     expect(screen.getByText('Alice')).toBeInTheDocument();
-    expect(screen.getByText('1/4 participants')).toBeInTheDocument();
+    expect(screen.getByText('1/4 items')).toBeInTheDocument();
   });
 
   it('removes a participant when remove button is clicked', () => {
     renderWithTournament(4);
 
-    const input = screen.getByLabelText('Participant name');
+    const input = screen.getByLabelText('Item name');
     const addButton = screen.getByRole('button', { name: 'Add' });
 
     fireEvent.change(input, { target: { value: 'Bob' } });
@@ -84,13 +84,13 @@ describe('ParticipantManager', () => {
     fireEvent.click(removeButton);
 
     expect(screen.queryByText('Bob')).not.toBeInTheDocument();
-    expect(screen.getByText('0/4 participants')).toBeInTheDocument();
+    expect(screen.getByText('0/4 items')).toBeInTheDocument();
   });
 
   it('shows duplicate name error when adding an existing participant', () => {
     renderWithTournament(4);
 
-    const input = screen.getByLabelText('Participant name');
+    const input = screen.getByLabelText('Item name');
     const addButton = screen.getByRole('button', { name: 'Add' });
 
     // Add first participant
@@ -109,7 +109,7 @@ describe('ParticipantManager', () => {
   it('disables input and button when bracket is full', () => {
     renderWithTournament(2);
 
-    const input = screen.getByLabelText('Participant name');
+    const input = screen.getByLabelText('Item name');
     const addButton = screen.getByRole('button', { name: 'Add' });
 
     // Add first participant
@@ -122,13 +122,13 @@ describe('ParticipantManager', () => {
 
     expect(input).toBeDisabled();
     expect(addButton).toBeDisabled();
-    expect(screen.getByText('2/2 participants')).toBeInTheDocument();
+    expect(screen.getByText('2/2 items')).toBeInTheDocument();
   });
 
   it('shows bracket full error when attempting to add beyond capacity', () => {
     renderWithTournament(2);
 
-    const input = screen.getByLabelText('Participant name');
+    const input = screen.getByLabelText('Item name');
     const addButton = screen.getByRole('button', { name: 'Add' });
 
     // Fill the bracket
@@ -152,28 +152,28 @@ describe('ParticipantManager', () => {
     fireEvent.click(addButton);
 
     expect(screen.getByRole('alert')).toHaveTextContent(
-      'Please enter a participant name.'
+      'Please enter an item name.'
     );
   });
 
   it('shows validation error when submitting whitespace-only participant name', () => {
     renderWithTournament(4);
 
-    const input = screen.getByLabelText('Participant name');
+    const input = screen.getByLabelText('Item name');
     const addButton = screen.getByRole('button', { name: 'Add' });
 
     fireEvent.change(input, { target: { value: '   ' } });
     fireEvent.click(addButton);
 
     expect(screen.getByRole('alert')).toHaveTextContent(
-      'Please enter a participant name.'
+      'Please enter an item name.'
     );
   });
 
   it('clears validation error when user types after an error', () => {
     renderWithTournament(4);
 
-    const input = screen.getByLabelText('Participant name');
+    const input = screen.getByLabelText('Item name');
     const addButton = screen.getByRole('button', { name: 'Add' });
 
     // Trigger the validation error
@@ -188,10 +188,10 @@ describe('ParticipantManager', () => {
   it('has proper accessibility attributes', () => {
     renderWithTournament();
 
-    const input = screen.getByLabelText('Participant name');
+    const input = screen.getByLabelText('Item name');
     expect(input).toHaveAttribute('aria-describedby', 'participant-error');
 
     // Section has proper heading
-    expect(screen.getByRole('heading', { name: 'Participants' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Tournament items' })).toBeInTheDocument();
   });
 });

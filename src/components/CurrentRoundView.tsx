@@ -32,10 +32,13 @@ import {
  *   at all (Req 11.6). Selecting routes to onSelectWinner (regular matchup) or
  *   onSelectThirdPlaceWinner (third-place match).
  * - Vote_Based_Mode: a single horizontal Vote_Slider positioned BELOW the options
- *   box with `Player_Count + 1` discrete positions (0..Player_Count). Its value is
- *   option1's Votes and option2's Votes are `playerCount − value`, so the two
- *   totals always sum to Player_Count by construction (Req 12.1, 12.2). It starts
- *   centered (`Math.round(playerCount / 2)`, or the persisted `votes1`). On the
+ *   box with `Player_Count + 1` discrete positions (0..Player_Count). The slider is
+ *   oriented intuitively: moving the thumb TOWARD an option gives that option MORE
+ *   votes. Because option1 sits on the left and option2 on the right, the raw slider
+ *   value maps to option2's Votes and option1's Votes are `playerCount − rawValue`,
+ *   so sliding right raises the right option and sliding left raises the left one.
+ *   The two totals always sum to Player_Count by construction (Req 12.1, 12.2). It
+ *   starts centered (`Math.round(playerCount / 2)`, or the persisted votes). On the
  *   slider's release / change-commit the card AUTOMATICALLY records the result by
  *   dispatching onEnterVotes (or onEnterThirdPlaceVotes) — no confirm button
  *   (Req 12.5). An equal split (only possible when Player_Count is even) records
@@ -159,10 +162,13 @@ function VoteMatchupControls({
   onEnterThirdPlaceVotes: (votes1: number, votes2: number) => void;
   onResolveThirdPlaceTie: () => void;
 }) {
-  // A single Vote_Slider whose value is option1's Votes; option2 = playerCount − value.
-  // Started from the persisted votes1 if present, else the discrete center default.
-  const [value, setValue] = useState<number>(
-    typeof matchup.votes1 === 'number' ? matchup.votes1 : Math.round(playerCount / 2)
+  // The slider is oriented so moving the thumb toward an option gives that option
+  // MORE votes. option2 is drawn on the right, so the RAW slider value is option2's
+  // Votes and option1 gets `playerCount − rawValue`. Sliding right → right option up,
+  // sliding left → left option up. Seeded from persisted votes2 when present, else
+  // the discrete center default.
+  const [sliderValue, setSliderValue] = useState<number>(
+    typeof matchup.votes2 === 'number' ? matchup.votes2 : Math.round(playerCount / 2)
   );
 
   const p1 = matchup.participant1;
@@ -172,24 +178,28 @@ function VoteMatchupControls({
   const p2Name = p2?.name ?? 'Participant 2';
 
   // Derived per-option totals; they always sum to playerCount by construction.
-  const votes1 = value;
-  const votes2 = playerCount - value;
+  const votes2 = sliderValue;
+  const votes1 = playerCount - sliderValue;
 
   // The tie-break draw is offered only for a matchup that is PERSISTED as tied
   // (equal votes recorded, winner still null) — determined from bracket state,
   // not the local slider (Req 12.10).
   const persistedTie = isTie(matchup) && matchup.winner === null;
 
-  // Release-to-confirm: on the slider's commit gesture, auto-record. An equal split
-  // (only possible when playerCount is even) records no winner — the Tie_Break_Draw
-  // control below handles that case (Req 12.6, 12.10).
-  const commit = (v: number) => {
+  // Release-to-confirm: on the slider's commit gesture, auto-record. The committed
+  // value is read from the live slider position (passed in by the event handler) so
+  // the last pair of a round records reliably even if a re-render hasn't flushed the
+  // latest state yet. An equal split (only possible when playerCount is even) records
+  // no winner — the Tie_Break_Draw control below handles that case (Req 12.6, 12.10).
+  const commit = (raw: number) => {
     if (!canDecide) return;
-    if (v === playerCount - v) return;
+    const v2 = raw;
+    const v1 = playerCount - raw;
+    if (v1 === v2) return;
     if (isThirdPlace) {
-      onEnterThirdPlaceVotes(v, playerCount - v);
+      onEnterThirdPlaceVotes(v1, v2);
     } else {
-      onEnterVotes(matchup.id, v, playerCount - v);
+      onEnterVotes(matchup.id, v1, v2);
     }
   };
 
@@ -226,14 +236,14 @@ function VoteMatchupControls({
         min={0}
         max={playerCount}
         step={1}
-        value={value}
+        value={sliderValue}
         disabled={!canDecide}
         aria-label={`Vote split for ${p1Name} versus ${p2Name}`}
-        onChange={(e) => setValue(Number(e.target.value))}
-        onPointerUp={() => commit(value)}
-        onKeyUp={() => commit(value)}
-        onTouchEnd={() => commit(value)}
-        onBlur={() => commit(value)}
+        onChange={(e) => setSliderValue(Number(e.target.value))}
+        onPointerUp={(e) => commit(Number((e.target as HTMLInputElement).value))}
+        onKeyUp={(e) => commit(Number((e.target as HTMLInputElement).value))}
+        onTouchEnd={(e) => commit(Number((e.target as HTMLInputElement).value))}
+        onBlur={(e) => commit(Number((e.target as HTMLInputElement).value))}
       />
 
       {canDecide && persistedTie && (

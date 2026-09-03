@@ -22,7 +22,7 @@ export function ParticipantManager() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) {
-      setLocalError('Please enter a participant name.');
+      setLocalError('Please enter an item name.');
       return;
     }
     setLocalError(null);
@@ -46,14 +46,14 @@ export function ParticipantManager() {
 
   return (
     <section aria-labelledby="participant-manager-heading">
-      <h2 id="participant-manager-heading">Participants</h2>
+      <h2 id="participant-manager-heading">Tournament items</h2>
 
       <p>
-        {participants.length}/{bracketSize} participants
+        {participants.length}/{bracketSize} items
       </p>
 
       <form onSubmit={handleSubmit}>
-        <label htmlFor="participant-name-input">Participant name</label>
+        <label htmlFor="participant-name-input">Item name</label>
         <input
           id="participant-name-input"
           type="text"
@@ -61,7 +61,7 @@ export function ParticipantManager() {
           onChange={handleChange}
           disabled={isFull}
           aria-describedby="participant-error"
-          placeholder={isFull ? 'Bracket is full' : 'Enter participant name'}
+          placeholder={isFull ? 'Bracket is full' : 'Enter an item name'}
         />
         <button type="submit" className="btn" disabled={isFull}>
           Add
@@ -75,7 +75,7 @@ export function ParticipantManager() {
       )}
 
       {participants.length > 0 && (
-        <ul className="participant-list" aria-label="Participant list">
+        <ul className="participant-list" aria-label="Tournament item list">
           {participants.map((participant) => (
             <li key={participant.id}>
               <span>{participant.name}</span>

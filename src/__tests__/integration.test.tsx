@@ -40,14 +40,14 @@ describe('Integration: Full Tournament Flow', () => {
     const participantNames = ['The Godfather', 'Inception', 'Interstellar', 'Pulp Fiction'];
 
     for (const name of participantNames) {
-      const input = screen.getByLabelText(/participant name/i);
+      const input = screen.getByLabelText(/item name/i);
       fireEvent.change(input, { target: { value: name } });
       fireEvent.click(screen.getByRole('button', { name: /^add$/i }));
     }
 
     // Verify all participants are listed
     await waitFor(() => {
-      expect(screen.getByText('4/4 participants')).toBeInTheDocument();
+      expect(screen.getByText('4/4 items')).toBeInTheDocument();
     });
 
     for (const name of participantNames) {
@@ -183,7 +183,7 @@ describe('Integration: Suggestion Flow', () => {
     });
 
     // Step 2: Add 1 participant manually
-    const input = screen.getByLabelText(/participant name/i);
+    const input = screen.getByLabelText(/item name/i);
     fireEvent.change(input, { target: { value: 'Bohemian Rhapsody' } });
     fireEvent.click(screen.getByRole('button', { name: /^add$/i }));
 
@@ -213,7 +213,7 @@ describe('Integration: Suggestion Flow', () => {
 
     // Verify the bracket is now full (1 manual + 3 suggestions = 4)
     await waitFor(() => {
-      expect(screen.getByText('4/4 participants')).toBeInTheDocument();
+      expect(screen.getByText('4/4 items')).toBeInTheDocument();
     });
 
     // Step 5: Generate bracket should be available
@@ -242,7 +242,7 @@ describe('Integration: Session Persistence', () => {
     // Add participants
     const names = ['React', 'Vue'];
     for (const name of names) {
-      const input = screen.getByLabelText(/participant name/i);
+      const input = screen.getByLabelText(/item name/i);
       fireEvent.change(input, { target: { value: name } });
       fireEvent.click(screen.getByRole('button', { name: /^add$/i }));
     }
@@ -264,6 +264,6 @@ describe('Integration: Session Persistence', () => {
     });
     expect(screen.getByText('React')).toBeInTheDocument();
     expect(screen.getByText('Vue')).toBeInTheDocument();
-    expect(screen.getByText('2/4 participants')).toBeInTheDocument();
+    expect(screen.getByText('2/4 items')).toBeInTheDocument();
   });
 });
