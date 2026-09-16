@@ -1,0 +1,45 @@
+﻿<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0078D4"/>
+      <stop offset="100%" stop-color="#0057B8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <circle cx="256" cy="256" r="240" fill="url(#blueGrad)"/>
+
+  <!-- Tournament brackets -->
+  <g stroke="white" stroke-width="12" fill="none" stroke-linecap="round">
+    <!-- Left -->
+    <line x1="90" y1="170" x2="140" y2="170"/>
+    <line x1="90" y1="340" x2="140" y2="340"/>
+    <line x1="140" y1="170" x2="140" y2="255"/>
+    <line x1="140" y1="340" x2="140" y2="255"/>
+    <line x1="140" y1="255" x2="190" y2="255"/>
+
+    <!-- Right -->
+    <line x1="422" y1="170" x2="372" y2="170"/>
+    <line x1="422" y1="340" x2="372" y2="340"/>
+    <line x1="372" y1="170" x2="372" y2="255"/>
+    <line x1="372" y1="340" x2="372" y2="255"/>
+    <line x1="372" y1="255" x2="322" y2="255"/>
+  </g>
+
+  <!-- Nodes -->
+  <g fill="white">
+    <circle cx="90" cy="170" r="10"/>
+    <circle cx="90" cy="340" r="10"/>
+    <circle cx="422" cy="170" r="10"/>
+    <circle cx="422" cy="340" r="10"/>
+  </g>
+
+  <!-- Trophy -->
+  <g fill="white">
+    <path d="M220 150 H292 V180 C292 220 270 245 256 252 C242 245 220 220 220 180 Z"/>
+    <path d="M220 165 C185 165 185 225 220 225 V200 C205 200 205 175 220 175 Z"/>
+    <path d="M292 165 C327 165 327 225 292 225 V200 C307 200 307 175 292 175 Z"/>
+    <rect x="242" y="252" width="28" height="40"/>
+    <rect x="220" y="292" width="72" height="20" rx="6"/>
+  </g>
+</svg>

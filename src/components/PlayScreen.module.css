@@ -1,0 +1,113 @@
+/*
+ * PlayScreen styling — blue/white palette from the shared design tokens.
+ * The play-phase shell: stage label, "Matchup X of N", a spaced "vs" separator
+ * so names never touch (Req 13.6), fully readable long names (Req 13.7), and
+ * Previous/Next controls whose focus ring takes precedence over hover
+ * (Req 24.1, 24.3, 24.4).
+ */
+
+.screen {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+  color: var(--color-text);
+  font-family: var(--font-family-base);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-bottom: var(--space-6);
+  text-align: center;
+}
+
+.stageLabel {
+  margin: 0;
+  color: var(--color-primary);
+}
+
+.position {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.matchup {
+  margin-bottom: var(--space-6);
+}
+
+/*
+ * Two options around a spaced "vs" separator. The separator has horizontal
+ * margin on both sides so the two names never appear adjacent (Req 13.6). The
+ * layout wraps on narrow widths so long names stay fully readable rather than
+ * being clipped (Req 13.7).
+ */
+.versus {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.optionName {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  text-align: center;
+  font-weight: 600;
+  /* Fully readable long names: wrap and break rather than truncate (Req 13.7). */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.vsSeparator {
+  flex: 0 0 auto;
+  margin: 0 var(--space-3);
+  color: var(--color-text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.navButton {
+  padding: var(--space-3) var(--space-6);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.navButton:hover {
+  background: var(--color-primary-hover);
+}
+
+.navButton:active {
+  background: var(--color-primary-active);
+}
+
+/* Focus ring wins over hover: it is listed last so it takes precedence when
+   hover and focus coincide (Req 24.4). */
+.navButton:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.navButton:disabled {
+  background: var(--color-border);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}

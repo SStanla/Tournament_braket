@@ -1,0 +1,20 @@
+# Netlify deployment configuration for the Tournament Bracket Creator.
+#
+# - The Vite build outputs the static site to `dist`.
+# - Serverless functions live in `netlify/functions`; `suggestions.mts` exposes
+#   the AI suggestion proxy at `/api/suggestions` via its own `config.path`.
+# - The GEMINI_API_KEY environment variable must be set in the Netlify site
+#   settings (Site configuration -> Environment variables). It is read
+#   server-side only and never sent to the browser.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+# SPA fallback: serve index.html for client-side routes. Kept AFTER functions
+# so the /api/* function path is resolved first and not swallowed by this rule.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

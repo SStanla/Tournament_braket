@@ -1,0 +1,108 @@
+/*
+ * CreateScreen styling — blue/white palette from the shared design tokens.
+ * Groups the creation form into labeled sections with consistent spacing and
+ * an accessible focus ring that takes precedence over hover (Req 24.1, 24.4).
+ */
+
+.screen {
+  max-width: 32rem;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+  color: var(--color-text);
+  font-family: var(--font-family-base);
+}
+
+.title {
+  margin: 0 0 var(--space-2);
+  color: var(--color-primary);
+}
+
+.intro {
+  margin: 0 0 var(--space-6);
+  color: var(--color-text-muted);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.label {
+  font-weight: 600;
+}
+
+.hint {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.input,
+.select {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.input:hover,
+.select:hover {
+  border-color: var(--color-primary);
+}
+
+.input:focus-visible,
+.select:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  border-color: var(--color-primary);
+}
+
+.inputError {
+  border-color: var(--color-danger);
+}
+
+.error {
+  color: var(--color-danger);
+  font-size: 0.875rem;
+}
+
+.submit {
+  align-self: flex-start;
+  padding: var(--space-3) var(--space-6);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.submit:hover {
+  background: var(--color-primary-hover);
+}
+
+.submit:active {
+  background: var(--color-primary-active);
+}
+
+.submit:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.confirmation {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
+  color: var(--color-accent);
+  font-weight: 600;
+}

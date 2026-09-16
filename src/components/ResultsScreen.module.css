@@ -1,0 +1,225 @@
+/*
+ * ResultsScreen styling — blue/white palette from the shared design tokens.
+ * Standings are presented first, then a read-only bracket tree laid out as
+ * left-to-right columns (one per round) with connecting lines toward the next
+ * round (Req 22.1, 22.6). The third-place match is a distinct, highlighted
+ * column (Req 22.7) and champion / 3rd / 4th are clearly marked (Req 22.8).
+ * Long names wrap rather than truncate so they stay fully readable
+ * (Req 22.5). This view is display-only — it renders no interactive controls
+ * (Req 22.9).
+ */
+
+.screen {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+  color: var(--color-text);
+  font-family: var(--font-family-base);
+}
+
+.heading {
+  margin: 0 0 var(--space-6);
+  color: var(--color-primary);
+  text-align: center;
+}
+
+.sectionTitle {
+  margin: 0 0 var(--space-4);
+  color: var(--color-primary);
+}
+
+/* --- Standings ----------------------------------------------------------- */
+
+.standingsSection {
+  margin-bottom: var(--space-8);
+}
+
+.standingsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.standingRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.standingRow[data-place='1'] {
+  border-color: var(--color-primary);
+  background: var(--color-surface-alt);
+}
+
+.standingPlace {
+  flex: 0 0 auto;
+  min-width: 5.5rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.medal {
+  flex: 0 0 auto;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.medal[data-medal='gold'] {
+  background: #f6c945;
+}
+
+.medal[data-medal='silver'] {
+  background: #cdd3dd;
+}
+
+.medal[data-medal='bronze'] {
+  background: #d9a066;
+}
+
+.standingName {
+  flex: 1 1 0;
+  min-width: 0;
+  font-weight: 600;
+  /* Keep long names fully readable: wrap and break rather than truncate. */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* --- Bracket tree -------------------------------------------------------- */
+
+.bracketSection {
+  overflow-x: auto;
+}
+
+.tree {
+  display: flex;
+  gap: var(--space-6);
+  align-items: stretch;
+  min-width: min-content;
+}
+
+.round {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 12rem;
+}
+
+.stageLabel {
+  margin: 0 0 var(--space-2);
+  color: var(--color-primary);
+  font-size: 0.95rem;
+}
+
+.roundMatchups {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: var(--space-4);
+}
+
+.matchupCell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+/*
+ * Connecting line to the next round's slot (Req 22.6): a short horizontal
+ * stub drawn to the right of every matchup cell except in the final column.
+ * The last round (final) has no next round, so its cells omit the connector.
+ */
+.round:not(:last-child) .matchupCell::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: calc(-1 * var(--space-6));
+  width: var(--space-6);
+  height: 2px;
+  background: var(--color-border);
+}
+
+/* The third-place column is standalone; never draw a connector out of it. */
+.thirdPlaceRound .matchupCell::after {
+  content: none;
+}
+
+.slot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-alt);
+}
+
+.slot[data-winner='true'] {
+  border-color: var(--color-accent);
+  font-weight: 700;
+}
+
+.slot[data-champion='true'] {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.slot[data-third='true'] {
+  border-color: #d9a066;
+}
+
+.slot[data-fourth='true'] {
+  border-color: var(--color-border);
+}
+
+.slotName {
+  flex: 1 1 0;
+  min-width: 0;
+  /* Keep long names fully readable in the tree too (Req 22.5). */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.championTag,
+.placeTag {
+  flex: 0 0 auto;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.placeTag {
+  color: var(--color-text);
+  background: var(--color-surface-alt);
+}
+
+/* Highlight the third-place match as a distinct matchup (Req 22.7). */
+.thirdPlaceRound .stageLabel {
+  color: var(--color-accent);
+}
+
+.thirdPlaceCell {
+  border-color: var(--color-accent);
+  border-style: dashed;
+  background: var(--color-surface-alt);
+}

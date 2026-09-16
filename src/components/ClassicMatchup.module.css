@@ -1,0 +1,74 @@
+/*
+ * ClassicMatchup styling — blue/white palette from the shared design tokens.
+ * Two selectable option buttons separated by a spaced "vs" separator so names
+ * never appear adjacent (Req 13.6) and stay fully readable (Req 13.7). The
+ * provisional winner is highlighted (Req 15.2); the focus ring takes precedence
+ * over hover (Req 24.4). No vote-related control appears here (Req 15.4).
+ */
+
+.matchup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+/* A selectable option button. */
+.option {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: var(--space-4);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  /* Long names wrap and break rather than truncate (Req 13.7). */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.option:hover {
+  border-color: var(--color-primary);
+  background: var(--color-surface-alt);
+}
+
+/* Provisional-winner highlight (Req 15.2). Applied via data-selected so the
+   selected state reads directly from the matchup's provisionalWinnerId. */
+.option[data-selected] {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+/* Focus ring wins over hover/selected: listed last so it takes precedence when
+   focus coincides with either (Req 24.4). */
+.option:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Neutral placeholder for an as-yet-unpopulated slot. */
+.placeholder {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: var(--space-4);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* Spaced "vs" separator so the two names never appear adjacent (Req 13.6). */
+.vsSeparator {
+  flex: 0 0 auto;
+  margin: 0 var(--space-3);
+  color: var(--color-text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

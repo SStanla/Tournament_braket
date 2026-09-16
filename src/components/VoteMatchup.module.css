@@ -1,0 +1,128 @@
+/*
+ * VoteMatchup styling — blue/white palette from the shared design tokens, with
+ * the leader highlight in the green accent (Req 16.5, 24.1). A single horizontal
+ * slider (Req 16.1) sits below two outlined vote readouts separated by a spaced
+ * "vs" so the names never appear adjacent (Req 13.6) and stay fully readable
+ * (Req 13.7). The focus ring takes precedence over hover (Req 24.4).
+ */
+
+.matchup {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+/* The two vote readouts around the "vs" separator. */
+.sides {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.side {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.optionName {
+  font-weight: 600;
+  color: var(--color-text);
+  /* Long names wrap and break rather than truncate (Req 13.7). */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Outlined box holding the current vote count. Both the number and this outline
+   turn green when the side leads (Req 16.5). */
+.voteBox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3ch;
+  padding: var(--space-2) var(--space-3);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Leader highlight: number colour + outline both green (Req 16.5). */
+.voteBox[data-leader] {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* Spaced "vs" separator so the two names never appear adjacent (Req 13.6). */
+.vsSeparator {
+  flex: 0 0 auto;
+  align-self: center;
+  margin: 0 var(--space-3);
+  color: var(--color-text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* The single horizontal vote slider (Req 16.1). */
+.slider {
+  width: 100%;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.slider:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+/* Focus ring wins over hover: listed last so it takes precedence (Req 24.4). */
+.slider:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Tie-break draw control, shown only on a tie (Req 16.7, 16.9). */
+.tieBreak {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.tieMessage {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.tieButton {
+  padding: var(--space-3) var(--space-5);
+  border: 2px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tieButton:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.tieButton:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
