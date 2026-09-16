@@ -19,8 +19,11 @@
 // the environment- and provider-specific bits so they can be swapped or mocked.
 //
 // The default provider is Google Gemini via its `generateContent` REST endpoint
-// (see `callGemini`), using the `gemini-2.0-flash` model — fast, low-latency and
-// available on the free tier, which suits short on-topic name suggestions.
+// (see `callGemini`), using the `gemini-flash-latest` alias — fast, low-latency
+// and available on the free tier, which suits short on-topic name suggestions.
+// The alias always resolves to the current stable Flash model, so the endpoint
+// keeps working as Google retires older generations (e.g. `gemini-2.0-flash`,
+// which was removed and previously caused every call to fail with a 502).
 
 /** Request body accepted by the endpoint. */
 export interface SuggestionRequestBody {
@@ -55,10 +58,15 @@ export const PROVIDER_KEY_ENV_VAR = 'GEMINI_API_KEY';
 export const UPSTREAM_TIMEOUT_MS = 9000;
 
 /**
- * The Gemini model used for suggestions. `gemini-2.0-flash` is fast and
- * available on the free tier, which fits short on-topic name generation.
+ * The Gemini model used for suggestions. `gemini-flash-lite-latest` is a moving
+ * alias that always points at the current stable lightweight Flash model —
+ * fast, low-latency, and available on the free tier, which fits short on-topic
+ * name generation. Using an alias avoids hardcoding a specific generation (like
+ * the retired `gemini-2.0-flash`) that Google can remove and break every
+ * request. The lite alias was chosen because it responds reliably (200) where
+ * heavier aliases were returning 404/503 for this project's key.
  */
-export const GEMINI_MODEL = 'gemini-2.0-flash';
+export const GEMINI_MODEL = 'gemini-flash-lite-latest';
 
 /** Base URL for the Gemini generateContent REST endpoint. */
 const GEMINI_ENDPOINT =
