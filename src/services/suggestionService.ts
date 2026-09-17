@@ -169,24 +169,48 @@ async function callAiEndpoint(
     // way there are no usable suggestions, so use the dev-only mock instead of
     // returning empty. Guarded by deps.useDevMock (which is false in tests and
     // stripped from production by Vite's tree-shaking of import.meta.env.DEV).
-    if (!res.ok) return await devMockFallback(category, existingNames, count, deps);
+    if (!res.ok) {
+      logSuggestionFallback(`endpoint returned HTTP ${res.status}`);
+      return await devMockFallback(category, existingNames, count, deps);
+    }
 
     const data = (await res.json()) as { suggestions?: unknown };
     if (!data || !Array.isArray(data.suggestions)) {
+      logSuggestionFallback('endpoint 200 but body had no "suggestions" array');
       return await devMockFallback(category, existingNames, count, deps);
     }
     const strings = data.suggestions.filter((s): s is string => typeof s === 'string');
     // An empty/HTML-shaped 200 (e.g. Vite serving index.html) yields no strings;
     // use the dev mock so the local UI still gets suggestions.
     if (strings.length === 0) {
+      logSuggestionFallback('endpoint 200 but "suggestions" array was empty');
       return await devMockFallback(category, existingNames, count, deps);
     }
     return strings;
-  } catch {
+  } catch (err) {
     // Network error or abort (timeout) => treat as failed (Req 9.4, 9.5).
+    const reason = controller.signal.aborted
+      ? `timed out after ${deps.timeoutMs}ms`
+      : `network/fetch error: ${(err as Error)?.message ?? String(err)}`;
+    logSuggestionFallback(reason);
     return await devMockFallback(category, existingNames, count, deps);
   } finally {
     clearTimeout(timer);
+  }
+}
+
+/**
+ * Surface WHY the AI cascade fell back to local lists. The AI path is otherwise
+ * entirely silent, which makes production issues (a 501/502 from the endpoint,
+ * a CORS/network error, a timeout, or a stale-cache HTML response) invisible and
+ * indistinguishable from "the AI simply had nothing to add". This warns in the
+ * browser console so the fallback reason is diagnosable without guessing.
+ */
+function logSuggestionFallback(reason: string): void {
+  const warn = (globalThis as { console?: { warn?: (...args: unknown[]) => void } })
+    .console?.warn;
+  if (typeof warn === 'function') {
+    warn(`[suggestions] AI endpoint unavailable, falling back to local lists — ${reason}`);
   }
 }
 
