@@ -1,21 +1,23 @@
 // Suggestion service (client) — the cascading strategy that produces on-topic
 // option suggestions for the tournament (Req 9).
 //
-// This module lives in the application layer. It orchestrates three sources, in
+// This module lives in the application layer. It orchestrates two sources, in
 // order, until it has enough unique suggestions:
 //   1. The AI proxy endpoint (POST /api/suggestions), with a ~10s ceiling that
 //      is the source of truth for the "failed" determination (Req 9.3, 9.4).
 //   2. Curated local lists via fuzzy, case-insensitive category matching
 //      (Req 9.5–9.7).
-//   3. Whatever it managed to produce, flagging that the rest must be filled by
-//      hand (Req 9.8).
+// Whatever it managed to produce is returned, flagging that any remaining slots
+// must be filled by hand (Req 9.8).
 //
 // All produced suggestions are unique among themselves and against the
 // already-present names, comparing with case/whitespace insensitivity (Req 9.9)
 // via the shared `namesEqual` domain helper.
 //
 // The `fetch` used to reach the endpoint is injectable so the cascade can be
-// unit-tested without a network (Task 16.1). The full test suite is Task 16.3.
+// unit-tested without a network. The default is the browser's global `fetch`,
+// bound to `globalThis` so it is a valid invocation (a bare `fetch` reference
+// invoked as `f()` loses its `this` binding and throws "Illegal invocation").
 
 import { namesEqual } from '../domain/validation';
 import { fuzzyMatchCategory } from './curatedLists';
@@ -60,57 +62,42 @@ export interface SuggestionServiceDeps {
   timeoutMs: number;
   /** Fuzzy category -> curated list. Defaults to {@link fuzzyMatchCategory}. */
   fuzzyMatch: (category: string) => string[] | null;
-  /**
-   * When true, and the endpoint yields no usable suggestions, return static
-   * dev-only mock suggestions instead of falling through to curated lists.
-   *
-   * Defaults to `import.meta.env.DEV` ONLY when using the built-in default
-   * fetch — i.e. the real browser flow under `npm run dev`, where no Netlify
-   * Function is running. Any caller that injects its own `fetchImpl` (all
-   * tests) gets `false`, so the mock never interferes with the tested cascade.
-   * Always `false` in production builds, where Vite tree-shakes the mock out.
-   */
-  useDevMock: boolean;
 }
 
+/**
+ * Return the environment's global `fetch`, BOUND to `globalThis`.
+ *
+ * The binding is essential: the browser's `fetch` must be invoked with its
+ * `this` set to the global object (`window`). Passing the bare `fetch`
+ * reference around and later calling it as `deps.fetchImpl(...)` sets `this` to
+ * `undefined`, which the browser rejects with
+ * `TypeError: Failed to execute 'fetch' on 'Window': Illegal invocation`.
+ * Binding here guarantees a valid invocation regardless of how the reference is
+ * later stored or called.
+ *
+ * When no global `fetch` exists (e.g. a test runner without a polyfill), we
+ * return a stub that rejects, so the cascade treats the AI as failed and falls
+ * through to the curated local lists.
+ */
 function defaultFetch(): FetchLike {
-  // Read `fetch` off globalThis so this type-checks under a browser tsconfig
-  // and still works in any environment that provides a global fetch.
   const f = (globalThis as { fetch?: FetchLike }).fetch;
-  if (!f) {
-    // No fetch available (e.g. some test runners without a polyfill): behave as
-    // if the AI call failed so the cascade falls through to local lists.
+  if (typeof f !== 'function') {
     return async () => {
       throw new Error('fetch is not available in this environment');
     };
   }
-  return f;
+  return f.bind(globalThis) as FetchLike;
 }
 
-const buildDefaultDeps = (): SuggestionServiceDeps => ({
-  fetchImpl: defaultFetch(),
-  timeoutMs: AI_TIMEOUT_MS,
-  fuzzyMatch: fuzzyMatchCategory,
-  // Only the real browser flow (default fetch, dev build) opts into the mock.
-  // Tests inject `fetchImpl`, which — combined with the merge logic in
-  // requestSuggestions/regenerateOne — forces this back to false.
-  useDevMock: import.meta.env.DEV,
-});
-
-/**
- * Merge caller overrides onto the defaults, but disable the dev mock whenever
- * the caller supplies its own `fetchImpl` (every test path) unless they also
- * explicitly opt in via `useDevMock`. This keeps the mock confined to the real
- * `npm run dev` browser flow and out of the tested cascade.
- */
+/** Merge caller overrides onto the runtime defaults. */
 function resolveDeps(
   overrides: Partial<SuggestionServiceDeps>,
 ): SuggestionServiceDeps {
-  const deps = { ...buildDefaultDeps(), ...overrides };
-  if (overrides.fetchImpl && overrides.useDevMock === undefined) {
-    deps.useDevMock = false;
-  }
-  return deps;
+  return {
+    fetchImpl: overrides.fetchImpl ?? defaultFetch(),
+    timeoutMs: overrides.timeoutMs ?? AI_TIMEOUT_MS,
+    fuzzyMatch: overrides.fuzzyMatch ?? fuzzyMatchCategory,
+  };
 }
 
 /**
@@ -164,27 +151,22 @@ async function callAiEndpoint(
     });
 
     // Any non-200 (bad request, not configured, upstream error) => fall back.
-    // In local dev the real Netlify Function is not running, so `/api/suggestions`
-    // is served the SPA's index.html (a 200 with an HTML body) or errors; either
-    // way there are no usable suggestions, so use the dev-only mock instead of
-    // returning empty. Guarded by deps.useDevMock (which is false in tests and
-    // stripped from production by Vite's tree-shaking of import.meta.env.DEV).
     if (!res.ok) {
       logSuggestionFallback(`endpoint returned HTTP ${res.status}`);
-      return await devMockFallback(category, existingNames, count, deps);
+      return [];
     }
 
     const data = (await res.json()) as { suggestions?: unknown };
     if (!data || !Array.isArray(data.suggestions)) {
       logSuggestionFallback('endpoint 200 but body had no "suggestions" array');
-      return await devMockFallback(category, existingNames, count, deps);
+      return [];
     }
-    const strings = data.suggestions.filter((s): s is string => typeof s === 'string');
-    // An empty/HTML-shaped 200 (e.g. Vite serving index.html) yields no strings;
-    // use the dev mock so the local UI still gets suggestions.
+    const strings = data.suggestions.filter(
+      (s): s is string => typeof s === 'string',
+    );
     if (strings.length === 0) {
       logSuggestionFallback('endpoint 200 but "suggestions" array was empty');
-      return await devMockFallback(category, existingNames, count, deps);
+      return [];
     }
     return strings;
   } catch (err) {
@@ -193,7 +175,7 @@ async function callAiEndpoint(
       ? `timed out after ${deps.timeoutMs}ms`
       : `network/fetch error: ${(err as Error)?.message ?? String(err)}`;
     logSuggestionFallback(reason);
-    return await devMockFallback(category, existingNames, count, deps);
+    return [];
   } finally {
     clearTimeout(timer);
   }
@@ -207,28 +189,14 @@ async function callAiEndpoint(
  * browser console so the fallback reason is diagnosable without guessing.
  */
 function logSuggestionFallback(reason: string): void {
-  const warn = (globalThis as { console?: { warn?: (...args: unknown[]) => void } })
-    .console?.warn;
+  const warn = (
+    globalThis as { console?: { warn?: (...args: unknown[]) => void } }
+  ).console?.warn;
   if (typeof warn === 'function') {
-    warn(`[suggestions] AI endpoint unavailable, falling back to local lists — ${reason}`);
+    warn(
+      `[suggestions] AI endpoint unavailable, falling back to local lists — ${reason}`,
+    );
   }
-}
-
-/**
- * Dev-only fallback: return static mock suggestions so the UI flow is testable
- * with plain `npm run dev` (no Netlify Function running). Returns `[]` unless
- * `deps.useDevMock` is set, which only happens in the real dev browser flow;
- * in production the whole branch is tree-shaken out via `import.meta.env.DEV`.
- */
-async function devMockFallback(
-  category: string,
-  existingNames: string[],
-  count: number,
-  deps: SuggestionServiceDeps,
-): Promise<string[]> {
-  if (!import.meta.env.DEV || !deps.useDevMock) return [];
-  const { mockAiSuggestions } = await import('./mockSuggestions');
-  return mockAiSuggestions(category, existingNames, count);
 }
 
 /**
