@@ -18,6 +18,7 @@
 // precedence come from the shared design tokens and App.module.css (Req 24.1,
 // 24.2, 24.3, 24.4, 24.5, 24.6). All user-facing text is English (Req 24.8).
 
+import { lazy, Suspense } from 'react';
 import logo from '/logo_app_tournament.svg';
 import { TournamentProvider, useTournament } from './app/TournamentContext';
 import CreateScreen from './components/CreateScreen';
@@ -28,7 +29,22 @@ import ClassicMatchup from './components/ClassicMatchup';
 import VoteMatchup from './components/VoteMatchup';
 import ResultsScreen from './components/ResultsScreen';
 import type { Matchup } from './domain/model';
+import UsageTracker from './analytics/UsageTracker';
 import styles from './App.module.css';
+
+// The admin usage dashboard is loaded on demand so it adds nothing to the
+// public bundle. Identity e-mail links (invite, recovery, confirmation) land
+// with a token in the hash and are routed there too.
+const AdminApp = lazy(() => import('./admin/AdminApp'));
+
+function isAdminRoute(): boolean {
+  const { pathname, hash } = window.location;
+  return (
+    pathname === '/admin' ||
+    pathname.startsWith('/admin/') ||
+    /(invite|recovery|confirmation|email_change)_token=/.test(hash)
+  );
+}
 
 /**
  * The phase-driven screen router. Reads the current tournament from context and
@@ -127,8 +143,17 @@ function NoticeBanner() {
  * chrome and the routed screen.
  */
 export default function App() {
+  if (isAdminRoute()) {
+    return (
+      <Suspense fallback={null}>
+        <AdminApp />
+      </Suspense>
+    );
+  }
+
   return (
     <TournamentProvider>
+      <UsageTracker />
       <div className={styles.app}>
         <AppHeader />
         <NoticeBanner />

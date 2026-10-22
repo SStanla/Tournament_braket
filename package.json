@@ -11,6 +11,9 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@netlify/database": "^2.0.1",
+    "@netlify/identity": "^2.0.0",
+    "drizzle-orm": "^1.0.0-beta.22",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
@@ -22,6 +25,7 @@
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "drizzle-kit": "^1.0.0-beta.22",
     "jsdom": "^25.0.0",
     "typescript": "^5.5.4",
     "vite": "^5.4.3",

@@ -1,0 +1,468 @@
+/*
+ * Usage dashboard styling. Reuses the app's blue/white design tokens; the
+ * chart colours are the primary blue (volume) and accent green (people).
+ */
+
+.page {
+  min-height: 100vh;
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  font-family: var(--font-family-base);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-6);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.headerLink {
+  color: var(--color-text-on-primary);
+  font-weight: 600;
+}
+
+.main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+}
+
+button:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.primary,
+.ghost,
+.ghostDark,
+.seg,
+.segActive,
+.link {
+  font: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+}
+
+.primary {
+  padding: var(--space-2) var(--space-5);
+  border: none;
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  font-weight: 600;
+}
+.primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.ghost {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-primary-contrast);
+  background: transparent;
+  color: var(--color-text-on-primary);
+  font-weight: 600;
+}
+
+.ghostDark {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--color-primary);
+  text-decoration: underline;
+  justify-self: start;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.authForm,
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.authForm {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 380px;
+  margin: var(--space-6) auto;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.field input,
+.search {
+  font: inherit;
+  font-weight: 400;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.cardTitle {
+  margin: 0 0 var(--space-4);
+  font-size: 1rem;
+}
+
+.subTitle {
+  margin: var(--space-5) 0 var(--space-3);
+  font-size: 0.9rem;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+.cardHead .cardTitle {
+  margin: 0;
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.error,
+.info {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  margin: 0 0 var(--space-4);
+}
+.error {
+  background: #fdecec;
+  color: #8f1f1f;
+  border: 1px solid #f2bcbc;
+}
+.info {
+  background: #e7f7ef;
+  color: #0b6b48;
+  border: 1px solid #b4e5cf;
+}
+
+/* Dashboard layout */
+.dashboard {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: 2px;
+}
+
+.seg,
+.segActive {
+  border: none;
+  padding: var(--space-2) var(--space-4);
+  background: transparent;
+  color: var(--color-text-muted);
+}
+.segActive {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  font-weight: 600;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-4);
+}
+
+.kpi {
+  display: grid;
+  gap: var(--space-1);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+.kpiLabel {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+.kpiValue {
+  font-size: 1.9rem;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.kpiHint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.grid2,
+.grid3 {
+  display: grid;
+  gap: var(--space-5);
+}
+.grid2 {
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+}
+.grid3 {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+/* Trend chart */
+.chartWrap {
+  display: grid;
+  gap: var(--space-2);
+}
+.readout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  min-height: 1.5rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+.readout strong {
+  color: var(--color-text);
+}
+.swatchBar,
+.swatchLine {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  vertical-align: -1px;
+}
+.swatchBar {
+  background: var(--color-primary);
+  opacity: 0.55;
+}
+.swatchLine {
+  background: var(--color-accent);
+  height: 3px;
+  vertical-align: 2px;
+}
+.chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.grid {
+  stroke: var(--color-border);
+  stroke-dasharray: 2 3;
+}
+.axis {
+  fill: var(--color-text-muted);
+  font-size: 11px;
+}
+.bar {
+  fill: var(--color-primary);
+  opacity: 0.55;
+}
+.barActive {
+  fill: var(--color-primary);
+}
+.line {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.dot {
+  fill: var(--color-accent);
+  pointer-events: none;
+}
+
+/* Ranked bars */
+.barList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.barRow {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-2);
+  font-size: 0.875rem;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.barFill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--color-primary);
+  opacity: 0.14;
+  border-radius: var(--radius-sm);
+}
+.barLabel,
+.barValue {
+  position: relative;
+}
+.barLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.barValue {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.barValue small {
+  margin-left: var(--space-2);
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+/* Hour columns */
+.hours {
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  gap: 2px;
+  height: 120px;
+  align-items: end;
+}
+.hourCol {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  height: 100%;
+  align-items: end;
+}
+.hourBar {
+  display: block;
+  min-height: 2px;
+  background: var(--color-primary);
+  opacity: 0.7;
+  border-radius: 2px 2px 0 0;
+}
+.hourLabel {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  text-align: center;
+  height: 14px;
+}
+
+/* Funnel */
+.funnel {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-4);
+}
+.funnelStep {
+  display: grid;
+  gap: var(--space-1);
+}
+.funnelHead {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
+.funnelTrack {
+  height: 10px;
+  background: var(--color-surface-alt);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.funnelTrack span {
+  display: block;
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 999px;
+}
+
+/* Access log */
+.search {
+  min-width: 240px;
+}
+.tableWrap {
+  overflow-x: auto;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.table th,
+.table td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  white-space: nowrap;
+}
+.table th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+.table tbody tr:hover {
+  background: var(--color-surface-alt);
+}
+.num {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+}
+.badge {
+  margin-left: var(--space-2);
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #e7f7ef;
+  color: #0b6b48;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
